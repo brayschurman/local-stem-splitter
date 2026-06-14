@@ -1,0 +1,21 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local environments
+.venv/
+venv/
+env/
+
+# Downloaded model weights and generated audio
+models/
+local-stems/
+*.wav
+*.flac
+*.mp3
+*.mid

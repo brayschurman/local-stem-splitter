@@ -1,0 +1,5 @@
+demucs==4.0.1
+audio-separator==0.44.2
+librosa==0.11.0
+numpy==2.4.6
+torch==2.12.0
