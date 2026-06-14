@@ -1,72 +1,18 @@
 # Local Stem Splitter
 
-Local stem separation for Apple Silicon Macs. This uses Demucs in a Python 3.12
-virtual environment and defaults to the higher-quality `htdemucs_ft` model, which
-produces:
+Local stem separation for Apple Silicon Macs. Give Codex a YouTube link or a
+local audio file, and it can run this repo to produce cleanly named stems for a
+DAW session.
+
+The default split uses Demucs `htdemucs_ft` for broad stems:
 
 - `vocals`
 - `drums`
 - `bass`
 - `other`
 
-## Usage
-
-Install dependencies in a local virtual environment:
-
-```sh
-python3.12 -m venv .venv
-./.venv/bin/python -m pip install -r requirements.txt
-```
-
-```sh
-cd ~/local-stem-splitter
-./.venv/bin/python split_stems.py "/path/to/song.mp3"
-```
-
-Outputs go to `~/Music/local-stems/htdemucs_6s/<song-slug>/`.
-
-Files are named in ordered kebab-case for drag-and-drop into a DAW:
-
-```text
-00-song-title-instrumental.wav
-01-song-title-drums.wav
-02-song-title-kick.wav
-03-song-title-snare.wav
-08-song-title-bass.wav
-09-song-title-other.wav
-10-song-title-vocals.wav
-```
-
-For MP3 output:
-
-```sh
-./.venv/bin/python split_stems.py "/path/to/song.mp3" --format mp3
-```
-
-For a custom folder:
-
-```sh
-./.venv/bin/python split_stems.py "/path/to/song.mp3" -o ~/Downloads/stems
-```
-
-## Notes
-
-- The script prefers Apple Metal/MPS on M-series Macs and falls back to CPU.
-- First run downloads the Demucs model weights.
-- First granular drum run downloads the DrumSep model to `~/local-stem-splitter/models`.
-- `wav24` is the default because it is better for further processing than MP3.
-- Granular drum sub-stems are available with `--drum-substems` and use
-  `MDX23C-DrumSep-aufr33-jarredou.ckpt` by default.
-
-## Broad Stems Plus Drum Sub-Stems
-
-```sh
-./.venv/bin/python split_stems.py "/path/to/song.mp3" --drum-substems
-```
-
-This produces the broad quality stems, writes an `instrumental` stem, then splits
-`drums` into the same folder. Drum sub-stems are enabled by default; pass
-`--no-drum-substems` to skip them.
+It also writes an `instrumental` stem and, by default, tries to split `drums`
+into drum sub-stems:
 
 - `kick`
 - `snare`
@@ -75,19 +21,131 @@ This produces the broad quality stems, writes an `instrumental` stem, then split
 - `ride`
 - `crash`
 
-## Installed Environment
+## Workflow
 
-The project venv lives at:
+The intended day-to-day flow is simple:
 
-```sh
-~/local-stem-splitter/.venv
+1. Give Codex either a YouTube link or a path to a local audio file.
+2. Codex downloads the YouTube audio when needed, or uses the local file as-is.
+3. Codex runs `split_stems.py` in the local virtual environment.
+4. Finished stems land in `~/Music/local-stems/htdemucs_ft/<song-slug>/`.
+5. Files are numbered and named in kebab-case so they sort correctly when
+   dragged into Logic, Ableton, Pro Tools, or another DAW.
+
+Example prompt:
+
+```text
+Split this into stems:
+https://www.youtube.com/watch?v=...
 ```
 
-Demucs is installed there, leaving system Python alone.
+Or:
 
-## Timing And Format
+```text
+Split ~/Downloads/song.wav into stems and put them in ~/Downloads/stems
+```
 
-Use `wav24` or `flac` for DAW/editing work. MP3 adds encoder delay/padding and
-may report small start-time or duration offsets even when the audio content is
-aligned. Demucs models process at their trained sample rate, so stems may be
-written at 44.1 kHz even if the source file was 48 kHz.
+## Output Names
+
+Files are named in stable, DAW-friendly order:
+
+```text
+00-song-title-instrumental.wav
+01-song-title-drums.wav
+02-song-title-kick.wav
+03-song-title-snare.wav
+04-song-title-hh.wav
+05-song-title-ride.wav
+06-song-title-crash.wav
+07-song-title-toms.wav
+08-song-title-bass.wav
+09-song-title-other.wav
+10-song-title-vocals.wav
+```
+
+The prefix comes from the source filename. For example, `My Song Final.mp3`
+becomes `my-song`, so the stem files are easy to scan and sort.
+
+## Setup
+
+Install dependencies in a local Python 3.12 virtual environment:
+
+```sh
+cd ~/local-stem-splitter
+python3.12 -m venv .venv
+./.venv/bin/python -m pip install -r requirements.txt
+```
+
+You also need `ffmpeg` available on your `PATH`. On macOS with Homebrew:
+
+```sh
+brew install ffmpeg
+```
+
+## Split A Local File
+
+```sh
+./.venv/bin/python split_stems.py "/path/to/song.mp3"
+```
+
+Use a custom output folder:
+
+```sh
+./.venv/bin/python split_stems.py "/path/to/song.mp3" -o ~/Downloads/stems
+```
+
+Write MP3 instead of the default 24-bit WAV:
+
+```sh
+./.venv/bin/python split_stems.py "/path/to/song.mp3" --format mp3
+```
+
+Skip drum sub-stems:
+
+```sh
+./.venv/bin/python split_stems.py "/path/to/song.mp3" --no-drum-substems
+```
+
+## Split A YouTube Link Manually
+
+Codex can handle this for you, but the manual equivalent is:
+
+```sh
+mkdir -p ~/Downloads/stem-sources
+./.venv/bin/yt-dlp \
+  --extract-audio \
+  --audio-format wav \
+  --output "$HOME/Downloads/stem-sources/%(title)s.%(ext)s" \
+  "https://www.youtube.com/watch?v=..."
+
+./.venv/bin/python split_stems.py "$HOME/Downloads/stem-sources/Song Title.wav"
+```
+
+Only download audio you have the right to use.
+
+## MIDI Drum Triggers
+
+After splitting a track with `kick` and `snare` WAV stems, generate MIDI trigger
+files:
+
+```sh
+./.venv/bin/python make_drum_triggers.py ~/Music/local-stems/htdemucs_ft/song-title
+```
+
+This writes:
+
+```text
+midi-triggers/song-title-kick-triggers-c1.mid
+midi-triggers/song-title-snare-triggers-d1.mid
+midi-triggers/song-title-kick-snare-triggers.mid
+```
+
+## Notes
+
+- The script prefers Apple Metal/MPS on M-series Macs and falls back to CPU.
+- First run downloads the Demucs model weights.
+- First granular drum run downloads the DrumSep model to `~/local-stem-splitter/models`.
+- `wav24` is the default because it is better for further processing than MP3.
+- MP3 can report encoder delay or padding. Use `wav24` or `flac` for DAW/editing alignment.
+- Demucs models process at their trained sample rate, so stems may be written at
+  44.1 kHz even if the source file was 48 kHz.
