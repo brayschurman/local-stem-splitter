@@ -87,10 +87,10 @@ Use a custom output folder:
 ./.venv/bin/python split_stems.py "/path/to/song.mp3" -o ~/Downloads/stems
 ```
 
-Write MP3 instead of the default 24-bit WAV:
+Write 24-bit WAV instead of the default MP3:
 
 ```sh
-./.venv/bin/python split_stems.py "/path/to/song.mp3" --format mp3
+./.venv/bin/python split_stems.py "/path/to/song.mp3" --format wav24
 ```
 
 Add an instrumental mix:
@@ -160,7 +160,7 @@ midi-triggers/song-title-kick-snare-triggers.mid
 - The script prefers Apple Metal/MPS on M-series Macs and falls back to CPU.
 - First run downloads the Demucs model weights.
 - First `--drum-substems` run downloads the DrumSep model to `~/local-stem-splitter/models`.
-- `wav24` is the default because it is better for further processing than MP3.
+- MP3 is the default for compact sharing.
 - MP3 can report encoder delay or padding. Use `wav24` or `flac` for DAW/editing alignment.
 - Demucs models process at their trained sample rate, so stems may be written at
   44.1 kHz even if the source file was 48 kHz.

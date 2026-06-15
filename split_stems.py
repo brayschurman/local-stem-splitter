@@ -329,8 +329,8 @@ def parse_args() -> argparse.Namespace:
         "-f",
         "--format",
         choices=["wav", "wav24", "wav32", "flac", "mp3"],
-        default="wav24",
-        help="Output format. Default: wav24.",
+        default="mp3",
+        help="Output format. Default: mp3.",
     )
     parser.add_argument(
         "--device",
@@ -339,7 +339,7 @@ def parse_args() -> argparse.Namespace:
         help="Processing device. Default prefers Apple Metal when available.",
     )
     parser.add_argument("--jobs", type=int, default=max(1, min(4, os.cpu_count() or 1)))
-    parser.add_argument("--segment", type=int, default=10)
+    parser.add_argument("--segment", type=int, default=7)
     parser.add_argument("--overlap", type=float, default=0.25)
     parser.add_argument("--mp3-bitrate", type=int, default=320)
     parser.add_argument(
