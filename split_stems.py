@@ -192,6 +192,9 @@ def apply_numbered_order(track_dir: Path, prefix: str) -> None:
 
 
 def create_instrumental(args: argparse.Namespace, track_dir: Path) -> None:
+    if not args.instrumental:
+        return
+
     component_stems = ["drums", "bass", "other", "guitar", "piano"]
     inputs = [stem_path(track_dir, args, stem) for stem in component_stems]
     inputs = [path for path in inputs if path.exists()]
@@ -340,10 +343,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--overlap", type=float, default=0.25)
     parser.add_argument("--mp3-bitrate", type=int, default=320)
     parser.add_argument(
+        "--instrumental",
+        action="store_true",
+        help="Create an instrumental mix from the available non-vocal stems.",
+    )
+    parser.add_argument(
         "--drum-substems",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="After broad splitting, try to run an installed DrumSep-capable audio-separator model.",
+        action="store_true",
+        help="After broad splitting, run an installed DrumSep-capable audio-separator model.",
     )
     parser.add_argument(
         "--drum-model",

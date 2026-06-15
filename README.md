@@ -11,8 +11,8 @@ The default split uses Demucs `htdemucs_ft` for broad stems:
 - `bass`
 - `other`
 
-It also writes an `instrumental` stem and, by default, tries to split `drums`
-into drum sub-stems:
+Optional flags can also create an `instrumental` mix or split `drums` into
+drum sub-stems:
 
 - `kick`
 - `snare`
@@ -45,19 +45,12 @@ Or:
 Split ~/Downloads/song.wav into stems and put them in ~/Downloads/stems
 ```
 
-## Output Names
+## Default Output Names
 
-Files are named in stable, DAW-friendly order:
+By default, files are named in stable, DAW-friendly order:
 
 ```text
-00-song-title-instrumental.wav
 01-song-title-drums.wav
-02-song-title-kick.wav
-03-song-title-snare.wav
-04-song-title-hh.wav
-05-song-title-ride.wav
-06-song-title-crash.wav
-07-song-title-toms.wav
 08-song-title-bass.wav
 09-song-title-other.wav
 10-song-title-vocals.wav
@@ -100,10 +93,32 @@ Write MP3 instead of the default 24-bit WAV:
 ./.venv/bin/python split_stems.py "/path/to/song.mp3" --format mp3
 ```
 
-Skip drum sub-stems:
+Add an instrumental mix:
 
 ```sh
-./.venv/bin/python split_stems.py "/path/to/song.mp3" --no-drum-substems
+./.venv/bin/python split_stems.py "/path/to/song.mp3" --instrumental
+```
+
+Add drum sub-stems:
+
+```sh
+./.venv/bin/python split_stems.py "/path/to/song.mp3" --drum-substems
+```
+
+With both optional extras enabled, output can include:
+
+```text
+00-song-title-instrumental.wav
+01-song-title-drums.wav
+02-song-title-kick.wav
+03-song-title-snare.wav
+04-song-title-hh.wav
+05-song-title-ride.wav
+06-song-title-crash.wav
+07-song-title-toms.wav
+08-song-title-bass.wav
+09-song-title-other.wav
+10-song-title-vocals.wav
 ```
 
 ## Split A YouTube Link Manually
@@ -125,8 +140,8 @@ Only download audio you have the right to use.
 
 ## MIDI Drum Triggers
 
-After splitting a track with `kick` and `snare` WAV stems, generate MIDI trigger
-files:
+After splitting a track with `--drum-substems`, generate MIDI trigger files from
+the `kick` and `snare` WAV stems:
 
 ```sh
 ./.venv/bin/python make_drum_triggers.py ~/Music/local-stems/htdemucs_ft/song-title
@@ -144,7 +159,7 @@ midi-triggers/song-title-kick-snare-triggers.mid
 
 - The script prefers Apple Metal/MPS on M-series Macs and falls back to CPU.
 - First run downloads the Demucs model weights.
-- First granular drum run downloads the DrumSep model to `~/local-stem-splitter/models`.
+- First `--drum-substems` run downloads the DrumSep model to `~/local-stem-splitter/models`.
 - `wav24` is the default because it is better for further processing than MP3.
 - MP3 can report encoder delay or padding. Use `wav24` or `flac` for DAW/editing alignment.
 - Demucs models process at their trained sample rate, so stems may be written at
